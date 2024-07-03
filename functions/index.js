@@ -5,6 +5,7 @@ const { SecretManagerServiceClient } = require('@google-cloud/secret-manager');
 const cors = require('cors')({ origin: true });
 
 admin.initializeApp();
+const db = admin.firestore();
 
 const client = new SecretManagerServiceClient();
 
@@ -20,7 +21,7 @@ async function getPostmarkApiKey() {
 
 exports.sendEmail = functions.https.onRequest((req, res) => {
     cors(req, res, async () => {
-        const { email, question } = req.body;
+        const { firstName, surname, telephone, email, question } = req.body;
 
         try {
             const POSTMARK_API_KEY = await getPostmarkApiKey();
@@ -30,11 +31,23 @@ exports.sendEmail = functions.https.onRequest((req, res) => {
                 "From": "raphael@raphskal.de", // Use your verified Postmark email
                 "To": email,
                 "Subject": "Danke für Ihre Anfrage.",
-                "TextBody": `Wir haben folgenden Anfrage von Ihnen erhalten:\n ${question}\n\n
+                "TextBody": `Sehr geehrte/r Herr/Frau ${surname}\n\n
+                Wir haben folgenden Anfrage von Ihnen erhalten:\n 
+                ${question}\n
                 Wir melden uns bei Ihnen zeitnah.`,
             };
 
             await postmarkClient.sendEmail(emailOptions);
+
+            await db.collection('contacts').add({
+                firstName,
+                surname,
+                telephone,
+                email,
+                question,
+                createdAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+
             res.status(200).send({ success: true, message: 'Email sent successfully' });
         } catch (error) {
             console.error(error);

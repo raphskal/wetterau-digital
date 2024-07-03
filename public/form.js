@@ -1,6 +1,9 @@
 document.getElementById('questionForm').addEventListener('submit', async function(event) {
     event.preventDefault();
     
+    const firstName = document.getElementById('firstName').value;
+    const surname = document.getElementById('surname').value;
+    const telephone = document.getElementById('telephone').value;
     const email = document.getElementById('email').value;
     const question = document.getElementById('question').value;
 
@@ -9,9 +12,9 @@ document.getElementById('questionForm').addEventListener('submit', async functio
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ email, question })
+        body: JSON.stringify({ firstName, surname, telephone, email, question })
     });
-    console.log('Trying to send email.')
+
     const result = await response.json();
     if (result.success) {
         alert('Ihre Anfrage wurde gesendet.');
